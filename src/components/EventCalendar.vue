@@ -184,10 +184,13 @@ export default {
       var month = dt.getMonth() + 1;
       var year = dt.getFullYear();
 
+      // Get total days of the month
       var daysInMonth = new Date(year, month, 0).getDate();
 
+      // Push dates of month to eventDates
       for (var x = 1; x <= daysInMonth; x++) {
         var strDate = year + "-" + month + "-" + x;
+        
         this.eventDates.push({
           dayOfWeek: x,
           date: moment(strDate).format('YYYY-MM-DD'),
