@@ -221,7 +221,7 @@ export default {
     },
 
     saveEvent() {
-      axios.post('http://35.222.190.63/api/events', {
+      axios.post('http://35.188.11.79/api/events', {
         event_name: this.eventName,
         event_date_from: this.eventFrom,
         event_date_to: this.eventTo,
@@ -237,7 +237,7 @@ export default {
     },
 
     getEvent() {
-      axios.get('http://35.222.190.63/api/events')
+      axios.get('http://35.188.11.79/api/events')
       .then((response) => {
         this.eventObj = response.data;
       },
