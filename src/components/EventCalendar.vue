@@ -24,8 +24,28 @@
     <div class="container-fluid" id="card-container">
       <div class="card">
         <div class="card-body">
-          <h5 class="card-title">Calendar</h5>
-          <hr />
+          <div class="row">
+            <div class="col-8">
+              <h5 class="card-title">Calendar</h5>
+            </div>
+            <div class="col-4">
+              <div aria-live="polite" aria-atomic="true" class="position-relative">
+                <div class="toast-container position-absolute top-0 end-0 p-3">
+
+                  <!-- Then put toasts within -->
+                  <div class="toast text-white bg-success border-0" :class="toastVisible ? 'show' : ''" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                      <div class="toast-body">
+                        <i class="bi bi-check2"></i> Event successfully saved.
+                      </div>
+                      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="container-fluid" id="card-body-container">
             <div class="row">
               <div class="col-3">
@@ -90,9 +110,9 @@
                   </div>
                 </div>
               </div>
-              <div class="col-9">
+              <div class="col-9">                
                 <div class="row">
-                  <h3>{{ month + " " + year }}</h3>
+                  <h3 @click=showToast>{{ month + " " + year }}</h3>
                   <table class="table">
                     <tbody>
                       <tr
@@ -164,7 +184,8 @@ export default {
         id: '',
         event_name: '',
         event_dates: []
-      }
+      },
+      toastVisible: false
     };
   },
   created() {
@@ -175,13 +196,13 @@ export default {
   methods: {
     getMonthYear() {
       var dt = new Date();
-      this.month = new Intl.DateTimeFormat("en", { month: "long" }).format(dt);
-      this.year = new Intl.DateTimeFormat("en", { year: "numeric" }).format(dt);
+      this.month = moment(dt).format('MMMM');
+      this.year = moment(dt).format('YYYY');
     },
-
+    
     populateCalendar() {
       var dt = new Date();
-      var month = dt.getMonth() + 1;
+      var month = dt.getMonth();
       var year = dt.getFullYear();
 
       // Get total days of the month
@@ -189,14 +210,12 @@ export default {
 
       // Push dates of month to eventDates
       for (var x = 1; x <= daysInMonth; x++) {
-        var strDate = year + "-" + month + "-" + x;
-        
+        var strDate = year + "-" + (month + 1) + "-" + x;
+
         this.eventDates.push({
           dayOfWeek: x,
           date: moment(strDate).format('YYYY-MM-DD'),
-          day: new Intl.DateTimeFormat("en", { weekday: "short" })
-                .format(new Date(year, month, x)
-          )
+          day: moment(strDate).format('ddd')
         });
       }
     },
@@ -210,6 +229,7 @@ export default {
       })
       .then((response) => {
         this.eventObj = response.data;
+        this.showToast();
       },
       (error) => {
         console.log(error);
@@ -232,7 +252,16 @@ export default {
       }
 
       return false;
-    }
+    },
+
+    hideToast() {
+      this.toastVisible = false;
+    },
+
+    showToast() {
+      this.toastVisible = true
+      setTimeout(this.hideToast, 3000);
+    }    
   },
 };
 </script>
@@ -258,8 +287,13 @@ export default {
 }
 
 #card-body-container {
-  padding-left: 0;
-  padding-right: 0;
+  padding: 10px 0 0 0;
+  border-top: 1px solid #9fa3a7;
+  margin-top: 10px;
+}
+
+.toast {
+  z-index: 5;
 }
 
 .btn {
