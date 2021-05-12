@@ -49,6 +49,12 @@
           <div class="container-fluid" id="card-body-container">
             <div class="row">
               <div class="col-3">
+                <div class="alert alert-danger" role="alert" :class="validationErrors.length == 0 ? 'd-none' : ''">
+                  <strong>The following errors are encountered: </strong><br/>
+                  <span v-for="validationError in validationErrors" :key="validationError">
+                    * {{ validationError }} <br/>
+                  </span>
+                </div>
                 <div class="row">
                   <p>Event</p>
                 </div>
@@ -112,7 +118,7 @@
               </div>
               <div class="col-9">                
                 <div class="row">
-                  <h3 @click=showToast>{{ month + " " + year }}</h3>
+                  <h3>{{ month + " " + year }}</h3>
                   <table class="table">
                     <tbody>
                       <tr
@@ -176,16 +182,17 @@ export default {
           'value': 0
         },
       ],
-      eventName: '',
-      eventFrom: '',
-      eventTo: '',
+      eventName: null,
+      eventFrom: null,
+      eventTo: null,
       checkedDays: [],
       eventObj: {
         id: '',
         event_name: '',
         event_dates: []
       },
-      toastVisible: false
+      toastVisible: false,
+      validationErrors: []
     };
   },
   created() {
@@ -230,9 +237,10 @@ export default {
       .then((response) => {
         this.eventObj = response.data;
         this.showToast();
-      },
-      (error) => {
-        console.log(error);
+        this.validationErrors = [];
+      })
+      .catch((error) => {
+        this.validationErrors = Object.values(error.response.data.errors).flat();
       });
     },
 
@@ -240,9 +248,6 @@ export default {
       axios.get('http://35.188.11.79/api/events')
       .then((response) => {
         this.eventObj = response.data;
-      },
-      (error) => {
-        console.log(error);
       });
     },
 
