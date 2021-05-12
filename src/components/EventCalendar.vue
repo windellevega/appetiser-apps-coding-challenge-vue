@@ -213,8 +213,8 @@ export default {
       var year = dt.getFullYear();
 
       // Get total days of the month
-      var daysInMonth = new Date(year, month, 0).getDate();
-
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      
       // Push dates of month to eventDates
       for (var x = 1; x <= daysInMonth; x++) {
         var strDate = year + "-" + (month + 1) + "-" + x;
