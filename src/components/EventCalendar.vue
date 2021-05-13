@@ -50,7 +50,7 @@
             <div class="row">
               <div class="col-3">
                 <div class="alert alert-danger" role="alert" :class="validationErrors.length == 0 ? 'd-none' : ''">
-                  <strong>The following errors are encountered: </strong><br/>
+                  <strong>The following errors were encountered: </strong><br/>
                   <span v-for="validationError in validationErrors" :key="validationError">
                     * {{ validationError }} <br/>
                   </span>
