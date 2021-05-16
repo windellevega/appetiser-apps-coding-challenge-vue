@@ -117,8 +117,12 @@
                 </div>
               </div>
               <div class="col-9">                
-                <div class="row">
-                  <h3>{{ month + " " + year }}</h3>
+                <div class="row">   
+                  <h3 class="calendar-header">
+                    <a href="#" @click="getPreviousCalendarMonth"><span aria-hidden="true">&laquo;</span></a>
+                    {{ currentMonthFormat + ' ' + currentYearFormat }}
+                    <a href="#" @click="getNextCalendarMonth"><span aria-hidden="true">&raquo;</span></a>
+                  </h3>
                   <table class="table">
                     <tbody>
                       <tr
@@ -149,38 +153,17 @@ import moment from 'moment';
 export default {
   data() {
     return {
-      month: "",
-      year: "",
       eventDates: [],
+      currentMonth: 0,
+      currentYear: 0,
       daysOfWeek: [
-        {
-          'day': 'Mon',
-          'value': 1
-        },
-        {
-          'day': 'Tue',
-          'value': 2
-        },
-        {
-          'day': 'Wed',
-          'value': 3
-        },
-        {
-          'day': 'Thu',
-          'value': 4
-        },
-        {
-          'day': 'Fri',
-          'value': 5
-        },
-        {
-          'day': 'Sat',
-          'value': 6
-        },
-        {
-          'day': 'Sun',
-          'value': 0
-        },
+        { 'day': 'Mon', 'value': 1 },
+        { 'day': 'Tue', 'value': 2 },
+        { 'day': 'Wed', 'value': 3 },
+        { 'day': 'Thu', 'value': 4 },
+        { 'day': 'Fri', 'value': 5 },
+        { 'day': 'Sat', 'value': 6 },
+        { 'day': 'Sun', 'value': 0 },
       ],
       eventName: null,
       eventFrom: null,
@@ -192,32 +175,51 @@ export default {
         event_dates: []
       },
       toastVisible: false,
-      validationErrors: []
+      validationErrors: [],
     };
   },
   created() {
     this.getEvent();
-    this.getMonthYear();
+    this.getCurrentMonthYear();
     this.populateCalendar();
   },
+  computed: {
+    currentMonthFormat() {
+      return moment(new Date(this.currentYear, this.currentMonth, 1)).format('MMM');
+    },
+    currentYearFormat() {
+      return moment(new Date(this.currentYear, this.currentMonth, 1)).format('YYYY');
+    }
+  },
   methods: {
-    getMonthYear() {
+    getCurrentMonthYear() {
       var dt = new Date();
-      this.month = moment(dt).format('MMMM');
-      this.year = moment(dt).format('YYYY');
+      this.currentMonth = dt.getMonth();
+      this.currentYear = dt.getFullYear();
+    },
+
+    getNextCalendarMonth() {
+      this.currentYear = this.currentMonth == 11 ? this.currentYear + 1 : this.currentYear;
+      this.currentMonth = this.currentMonth == 11 ? 0 : this.currentMonth + 1;
+      this.populateCalendar();
+    },
+
+    getPreviousCalendarMonth() {
+      this.currentYear = this.currentMonth == 0 ? this.currentYear - 1 : this.currentYear;
+      this.currentMonth = this.currentMonth == 0 ? 11 : this.currentMonth - 1;
+      this.populateCalendar();
     },
     
     populateCalendar() {
-      var dt = new Date();
-      var month = dt.getMonth();
-      var year = dt.getFullYear();
-
+      this.eventDates = []
       // Get total days of the month
-      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var dt = new Date(this.currentYear, this.currentMonth + 1, 0);
+
+      var daysInMonth = dt.getDate();
       
       // Push dates of month to eventDates
       for (var x = 1; x <= daysInMonth; x++) {
-        var strDate = year + "-" + (month + 1) + "-" + x;
+        var strDate = this.currentYear + "-" + (this.currentMonth + 1) + "-" + x;
 
         this.eventDates.push({
           dayOfWeek: x,
@@ -229,6 +231,7 @@ export default {
 
     saveEvent() {
       axios.post('http://35.188.11.79/api/events', {
+      //axios.post('http://localhost:8000/api/events', {
         event_name: this.eventName,
         event_date_from: this.eventFrom,
         event_date_to: this.eventTo,
@@ -246,6 +249,7 @@ export default {
 
     getEvent() {
       axios.get('http://35.188.11.79/api/events')
+      //axios.get('http://localhost:8000/api/events')
       .then((response) => {
         this.eventObj = response.data;
       });
@@ -268,7 +272,7 @@ export default {
       setTimeout(this.hideToast, 3000);
     }    
   },
-};
+}
 </script>
 
 <style>
@@ -303,5 +307,10 @@ export default {
 
 .btn {
   margin-top: 15px;
+}
+
+.calendar-header a {
+  text-decoration: none;
+  padding: 0 10px;
 }
 </style>
