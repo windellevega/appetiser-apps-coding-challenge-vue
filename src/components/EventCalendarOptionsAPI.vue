@@ -149,152 +149,129 @@
 <script>
 import axios from 'axios';
 import moment from 'moment';
-import { computed, onBeforeMount, reactive, ref } from 'vue';
 
 export default {
-  setup() {
-    /* DATA */
-    const eventDates = ref([]);
-    const currentMonth = ref(4);
-    const currentYear = ref(2021);
-    const daysOfWeek = ref([
-      { 'day': 'Mon', 'value': 1 },
-      { 'day': 'Tue', 'value': 2 },
-      { 'day': 'Wed', 'value': 3 },
-      { 'day': 'Thu', 'value': 4 },
-      { 'day': 'Fri', 'value': 5 },
-      { 'day': 'Sat', 'value': 6 },
-      { 'day': 'Sun', 'value': 0 },
-    ]);
-    const eventName = ref('');
-    const eventFrom = ref('');
-    const eventTo = ref('');
-    const checkedDays = ref([]);
-    const eventObj = ref({
-      id: '',
-      event_name: '',
-      event_dates: []
-    });
-    const toastVisible = ref(false);
-    const validationErrors = ref([]);
-
-    /* METHODS */
-    function getCurrentMonthYear() {
+  data() {
+    return {
+      eventDates: [],
+      currentMonth: 0,
+      currentYear: 0,
+      daysOfWeek: [
+        { 'day': 'Mon', 'value': 1 },
+        { 'day': 'Tue', 'value': 2 },
+        { 'day': 'Wed', 'value': 3 },
+        { 'day': 'Thu', 'value': 4 },
+        { 'day': 'Fri', 'value': 5 },
+        { 'day': 'Sat', 'value': 6 },
+        { 'day': 'Sun', 'value': 0 },
+      ],
+      eventName: null,
+      eventFrom: null,
+      eventTo: null,
+      checkedDays: [],
+      eventObj: {
+        id: '',
+        event_name: '',
+        event_dates: []
+      },
+      toastVisible: false,
+      validationErrors: [],
+    };
+  },
+  mounted() {
+    this.getEvent();
+    this.getCurrentMonthYear();
+    this.populateCalendar();
+  },
+  computed: {
+    currentMonthFormat() {
+      return moment(new Date(this.currentYear, this.currentMonth, 1)).format('MMM');
+    },
+    currentYearFormat() {
+      return moment(new Date(this.currentYear, this.currentMonth, 1)).format('YYYY');
+    }
+  },
+  methods: {
+    getCurrentMonthYear() {
       var dt = new Date();
-      currentMonth.value = dt.getMonth();
-      currentYear.value = dt.getFullYear();
-    }
+      this.currentMonth = dt.getMonth();
+      this.currentYear = dt.getFullYear();
+    },
 
-    function getNextCalendarMonth() {
-      currentYear.value = currentMonth.value == 11 ? currentYear.value + 1 : currentYear.value;
-      currentMonth.value = currentMonth.value == 11 ? 0 : currentMonth.value + 1;
-      populateCalendar();
-    }
+    getNextCalendarMonth() {
+      this.currentYear = this.currentMonth == 11 ? this.currentYear + 1 : this.currentYear;
+      this.currentMonth = this.currentMonth == 11 ? 0 : this.currentMonth + 1;
+      this.populateCalendar();
+    },
 
-    function getPreviousCalendarMonth() {
-      currentYear.value = currentMonth.value == 0 ? currentYear.value - 1 : currentYear.value;
-      currentMonth.value = currentMonth.value == 0 ? 11 : currentMonth.value - 1;
-      populateCalendar();
-    }
+    getPreviousCalendarMonth() {
+      this.currentYear = this.currentMonth == 0 ? this.currentYear - 1 : this.currentYear;
+      this.currentMonth = this.currentMonth == 0 ? 11 : this.currentMonth - 1;
+      this.populateCalendar();
+    },
     
-    function populateCalendar() {
-      eventDates.value = []
-
+    populateCalendar() {
+      this.eventDates = []
       // Get total days of the month
-      const dt = new Date(currentYear.value, currentMonth.value + 1, 0);
+      var dt = new Date(this.currentYear, this.currentMonth + 1, 0);
 
-      const daysInMonth = dt.getDate();
+      var daysInMonth = dt.getDate();
       
       // Push dates of month to eventDates
-      for (let x = 1; x <= daysInMonth; x++) {
-        const strDate = currentYear.value + "-" + (currentMonth.value + 1) + "-" + x;
+      for (var x = 1; x <= daysInMonth; x++) {
+        var strDate = this.currentYear + "-" + (this.currentMonth + 1) + "-" + x;
 
-        eventDates.value.push({
+        this.eventDates.push({
           dayOfWeek: x,
           date: moment(strDate).format('YYYY-MM-DD'),
           day: moment(strDate).format('ddd')
         });
       }
-    }
+    },
 
-    function saveEvent() {
+    saveEvent() {
       // axios.post('http://35.188.11.79/api/events', {
       axios.post('http://localhost:8000/api/events', {
-        event_name: eventName.value,
-        event_date_from: eventFrom.value,
-        event_date_to: eventTo.value,
-        event_days: checkedDays.value
+        event_name: this.eventName,
+        event_date_from: this.eventFrom,
+        event_date_to: this.eventTo,
+        event_days: this.checkedDays
       })
       .then((response) => {
-        eventObj.value = response.data;
-        showToast();
-        validationErrors.value = [];
+        this.eventObj = response.data;
+        this.showToast();
+        this.validationErrors = [];
       })
       .catch((error) => {
-        validationErrors.value = Object.values(error.response.data.errors).flat();
+        this.validationErrors = Object.values(error.response.data.errors).flat();
       });
-    }
+    },
 
-    function getEvent() {
+    getEvent() {
       // axios.get('http://35.188.11.79/api/events')
       axios.get('http://localhost:8000/api/events')
       .then((response) => {
-        eventObj.value = response.data;
+        this.eventObj = response.data;
       });
-      
-    }
+    },
 
-    function dateIsInEventDates(date) {
-      if (eventObj.value.event_dates.includes(date)) {
+    dateIsInEventDates(date) {
+      if (this.eventObj.event_dates.includes(date)) {
         return true;
       }
 
       return false;
-    }
+    },
 
-    function hideToast() {
-      toastVisible.value = false;
-    }
+    hideToast() {
+      this.toastVisible = false;
+    },
 
-    function showToast() {
-      toastVisible.value = true
-      setTimeout(hideToast, 3000);
+    showToast() {
+      this.toastVisible = true
+      setTimeout(this.hideToast, 3000);
     }    
-
-    /* COMPUTED */
-    const currentMonthFormat = computed(() => {
-      return moment(new Date(currentYear.value, currentMonth.value, 1)).format('MMM');
-    });
-
-    const currentYearFormat = computed(() => {
-      return moment(new Date(currentYear.value, currentMonth.value, 1)).format('YYYY');
-    });
-
-    /* LIFECYCLE HOOKS */
-    onBeforeMount(() => {
-      getEvent(),
-      getCurrentMonthYear(),
-      populateCalendar()
-    });
-
-    return {
-      eventDates,
-      daysOfWeek,
-      eventName,
-      eventFrom,
-      eventTo,
-      checkedDays,
-      eventObj,
-      toastVisible,
-      validationErrors,
-      getNextCalendarMonth,
-      getPreviousCalendarMonth,
-      saveEvent,
-      dateIsInEventDates,
-      currentMonthFormat,
-      currentYearFormat
-    }
-  }
+  },
 }
 </script>
 
