@@ -152,6 +152,7 @@ import moment from 'moment';
 import { computed, onBeforeMount, reactive, ref } from 'vue';
 
 export default {
+  /* COMPOSITION API*/
   setup() {
     /* DATA */
     const eventDates = ref([]);
